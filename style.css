@@ -1,0 +1,67 @@
+html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+}
+#map {
+        height: 100%;
+        width: 70%;
+}
+
+#overlay {
+    position: absolute;
+    width: 30%;
+    height: 100%;
+    background: black;
+    opacity: .8;
+    top: 0;
+    right: 0;
+    overflow: auto;
+}
+#overlayContent {
+    color: white;
+    padding: 10px 20px;
+}
+#overlayContent p {
+    font-size: 12px;
+    margin: 6px 0;
+}
+#overlayContent small {
+    display: block;
+    text-align: right;
+    font-style: italic;
+}
+
+.transitOption {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    outline: none;
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: 2.6em;
+    -webkit-transition: color 0.3s ease;
+    -moz-transition: color 0.3s ease;
+    transition: color 0.3s ease; 
+    padding: 10px 25px;
+}
+
+.transitOption:hover {
+    -webkit-transition: color 0.3s ease;
+    -moz-transition: color 0.3s ease;
+    transition: color 0.3s ease; 
+    color: #777;
+}
+
+#stops {
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+}
+
+.center {
+    text-align: center;
+    color: white;
+    padding: 10px 20px;
+}

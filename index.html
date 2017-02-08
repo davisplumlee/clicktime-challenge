@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="ClicktimeChallenge">
+<head>
+    <meta charset="UTF-8">
+    <title>Clicktime Challenge | Question 2</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://use.fontawesome.com/f8241a9974.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCV8zxNaCzA0oDQWzQJx2gxV0CKo61wu4Q&libraries=places"></script>
+</head>
+<body ng-controller="mapController">
+    
+   <div id="map"></div>
+   <div id="overlay">
+       <div class="center">
+            <p><b>How are you getting to the office?</b></p>
+            <button class="transitOption" id="walk"><span class="fa fa-male" aria-hidden="true"></span></button>
+            <button class="transitOption" id="bike"><span class="fa fa-bicycle" aria-hidden="true"></span></button>
+            <button class="transitOption" id="transit"><span class="fa fa-bus" aria-hidden="true"></span></button>
+       </div>
+        <p id="stops"></p>
+    <div id="overlayContent"></div>
+   </div>
+   
+    <script src="app.js"></script>
+</body>
+</html>
