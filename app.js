@@ -138,6 +138,7 @@
                 });
             }
 
+            //Specific Transit routing function, doesn't use waypoints, only goes from origin to destination
             $scope.calculateAndDisplayRouteTransit = function(directionsService, directionsDisplay) {
 
                 directionsService.route({
