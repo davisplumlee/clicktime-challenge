@@ -34,7 +34,7 @@
                         localStorage.setItem("lat", pos.lat);
                         localStorage.setItem("lng", pos.lng);
                     }, function() {
-                        window.alert(`You must allow current location to be used`);
+                        
                     });
                     } else {
                     window.alert(`Browser doesn't support Geolocation`);
