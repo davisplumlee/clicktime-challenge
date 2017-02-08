@@ -7,7 +7,7 @@
 
             //Initializes Google maps services
             $scope.initialize = function() {
-
+                var donutLocation, coffeeLocation
                 var directionsDisplay = new google.maps.DirectionsRenderer;
                 var directionsService = new google.maps.DirectionsService;
                 var map = new google.maps.Map(document.getElementById('map'), {
@@ -18,7 +18,6 @@
                 });
 
                 directionsDisplay.setMap(map);
-                directionsDisplay.setPanel(document.getElementById('right-panel'));
 
                 
                 //Gets the current location object from the user, alerts message if unable to use
@@ -42,16 +41,55 @@
 
                 //Reads in the type of transportation the user is taking and calculates the routing accordingly
                 document.getElementById('bike').addEventListener('click', function() {
+                    if(coffeeLocation || donutLocation) {
+                        coffeeLocation.setMap(null);
+                        donutLocation.setMap(null);
+                    }
                     $scope.travel = 'BICYCLING'
                     $scope.calculateAndDisplayRoute(directionsService, directionsDisplay);
                 });
+
                 document.getElementById('walk').addEventListener('click', function() {
+                    if(coffeeLocation || donutLocation) {
+                        coffeeLocation.setMap(null);
+                        donutLocation.setMap(null);
+                    }
                     $scope.travel = 'WALKING'
                     $scope.calculateAndDisplayRoute(directionsService, directionsDisplay);
                 });
+
+                //Special Workarounds for Transit because the traditonal waypoints won't work with it
                 document.getElementById('transit').addEventListener('click', function() {
                     $scope.travel = 'TRANSIT'
-                    $scope.calculateAndDisplayRoute(directionsService, directionsDisplay);
+                    $scope.calculateAndDisplayRouteTransit(directionsService, directionsDisplay);
+                    
+                    //Sets two markers to be placed on the map to visualize where the two shops are
+                    coffeeLocation = new google.maps.Marker({
+                        position: new google.maps.LatLng($scope.stops[0].geometry.location.lat(), $scope.stops[0].geometry.location.lng()),
+                        title: $scope.stops[0].name
+                    });
+                    donutLocation = new google.maps.Marker({
+                        position: new google.maps.LatLng($scope.stops[1].geometry.location.lat(), $scope.stops[1].geometry.location.lng()),
+                        title: $scope.stops[1].name
+                    });
+
+                    //Creates the title windows for the markers
+                    var coffeeInfo = new google.maps.InfoWindow({
+                        content: $scope.stops[0].name
+                    });
+                    var donutInfo = new google.maps.InfoWindow({
+                        content: $scope.stops[1].name
+                    });
+
+                    coffeeLocation.setMap(map)
+                    donutLocation.setMap(map)
+
+                    coffeeLocation.addListener('click', function() {
+                        coffeeInfo.open(map, coffeeLocation);
+                    });
+                    donutLocation.addListener('click', function() {
+                        donutInfo.open(map, donutLocation);
+                    });
                 });
 
                 
@@ -83,15 +121,15 @@
 
                 directionsService.route({
                     origin: {lat: Number(localStorage.getItem("lat")) || 37.77, lng: Number(localStorage.getItem("lng")) || -122.447},
-                    destination: {lat: 37.7856359, lng: -122.3993077},
+                    destination: {'placeId': 'ChIJVyk2ZnyAhYARjmWYsnV59jE'},
                     waypoints: $scope.waypoints,
                     optimizeWaypoints: true,
                     travelMode: google.maps.TravelMode[$scope.travel]
                     }, function(response, status) {
                     if (status == 'OK') {
-
+                        console.log(response)
                         directionsDisplay.setDirections(response);
-                        writeDirections(response.routes[0].legs);
+                        writeDirections(response.routes[0]);
                         document.getElementById("stops").innerHTML = `You're stopping at <b>${$scope.stops[0].name}</b> and <b>${$scope.stops[1].name}</b> on your way into the ClickTime office`;
 
                     } else {
@@ -100,8 +138,29 @@
                 });
             }
 
+            $scope.calculateAndDisplayRouteTransit = function(directionsService, directionsDisplay) {
+
+                directionsService.route({
+                    origin: {lat: Number(localStorage.getItem("lat")) || 37.77, lng: Number(localStorage.getItem("lng")) || -122.447},
+                    destination: {'placeId': 'ChIJVyk2ZnyAhYARjmWYsnV59jE'},
+                    travelMode: google.maps.TravelMode[$scope.travel]
+                    }, function(response, status) {
+                    if (status == 'OK') {
+                        console.log(response)
+                        directionsDisplay.setDirections(response);
+                        writeDirections(response.routes[0]);
+                        document.getElementById("stops").innerHTML = `Try and stop at <b>${$scope.stops[0].name}</b> and <b>${$scope.stops[1].name}</b> on your way into the ClickTime office`;
+
+                    } else {
+                        window.alert(`Can't get directions for ${$scope.travel.toLowerCase()} from where you are`);
+                    }
+                });
+            }
+
             //Prints out step by step route directions for all sections of the trip
-            function writeDirections(legs) {
+            function writeDirections(route) {
+                var legs = route.legs;
+                fixStopOrder(route.waypoint_order);
                 var overlayContent = document.getElementById("overlayContent");
                 overlayContent.innerHTML = '';
 
@@ -110,8 +169,14 @@
                     for(var j = 0; j < currentStep.length; j++){     
                         overlayContent.innerHTML += '<p>' + currentStep[j].instructions + '</p><small>' + currentStep[j].distance.text + '</small>';
                     }
-                    if(i != 2){
-                        overlayContent.innerHTML += '<h5 style="text-align: center; padding-bottom: 20px;">Stop ' + (i + 1) + '</h5>'
+                    if($scope.travel == 'TRANSIT'){
+                        overlayContent.innerHTML += '<h5 style="text-align: center; padding-bottom: 20px;">Arrive at Work</h5>'
+                        return;
+                    }
+                    if(i == 0){
+                        overlayContent.innerHTML += '<h5 style="text-align: center; padding-bottom: 20px;">Stop at ' + $scope.stops[0].name + '</h5>'
+                    } else if (i == 1){
+                        overlayContent.innerHTML += '<h5 style="text-align: center; padding-bottom: 20px;">Stop at ' + $scope.stops[1].name + '</h5>'
                     } else {
                         overlayContent.innerHTML += '<h5 style="text-align: center; padding-bottom: 20px;">Arrive at Work</h5>'
                     }
@@ -131,6 +196,17 @@
                         stopover: true
                     })
                     $scope.stops.push(results[random])
+                }
+            }
+
+            //Corrects Optimized Waypoint order if needed
+            function fixStopOrder(order){
+                if(order[0] == 0){
+                    return
+                } else {
+                    var temp = $scope.stops[1];
+                    $scope.stops[1] = $scope.stops[0];
+                    $scope.stops[0] = temp;
                 }
             }
 
