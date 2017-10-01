@@ -1,6 +1,6 @@
 ;(function(){
 
-    angular.module('ClicktimeChallenge', [])
+    angular.module('CoffeeDonut', [])
         .controller('mapController', function($scope){
             $scope.waypoints = [];
             $scope.stops = [];
