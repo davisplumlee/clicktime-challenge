@@ -4,12 +4,18 @@
         .controller('mapController', function($scope){
             $scope.waypoints = [];
             $scope.stops = [];
+            $scope.destination;
 
             //Initializes Google maps services
             $scope.initialize = function() {
                 var donutLocation, coffeeLocation
                 var directionsDisplay = new google.maps.DirectionsRenderer;
                 var directionsService = new google.maps.DirectionsService;
+                autocomplete = new google.maps.places.Autocomplete((document.getElementById('autocomplete')), {types: ['geocode']});
+                autocomplete.addListener('place_changed', function(){
+                    var temp = autocomplete.getPlace()
+                    $scope.destination = temp.place_id
+                });
                 var map = new google.maps.Map(document.getElementById('map'), {
                     center: {lat: Number(localStorage.getItem("lat")) || -34.397, lng: Number(localStorage.getItem("lng")) || 150.644},
                     zoom: 10,
@@ -96,7 +102,7 @@
                 var coffeeService = new google.maps.places.PlacesService(map);
                 var donutService = new google.maps.places.PlacesService(map);
 
-                //Searches the area nearby the ClickTime office for 'coffee'
+                //Searches the area nearby the office for 'coffee'
                 coffeeService.nearbySearch({
                 location: {lat: 37.7856359, lng: -122.3993077}, //Can be changed to search around current location
                 radius: 500,
@@ -104,7 +110,7 @@
                 keyword: 'coffee'
                 }, processResults);
                 
-                //Searches the area nearby the ClickTime office for 'donuts'
+                //Searches the area nearby the office for 'donuts'
                 donutService.nearbySearch({
                 location: {lat: 37.7856359, lng: -122.3993077}, //Can be changed to search around current location
                 radius: 1000,
@@ -114,6 +120,22 @@
 
 
             }
+
+            $scope.geolocate = function () {
+                if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(function(position) {
+                    var geolocation = {
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude
+                    };
+                    var circle = new google.maps.Circle({
+                      center: geolocation,
+                      radius: position.coords.accuracy
+                    });
+                    autocomplete.setBounds(circle.getBounds());
+                  });
+                }
+              }
             
             
             //Creates the routing object that is displayed on the map and generates step by step directions
@@ -130,7 +152,7 @@
                         console.log(response)
                         directionsDisplay.setDirections(response);
                         writeDirections(response.routes[0]);
-                        document.getElementById("stops").innerHTML = `You're stopping at <b>${$scope.stops[0].name}</b> and <b>${$scope.stops[1].name}</b> on your way into the ClickTime office`;
+                        document.getElementById("stops").innerHTML = `You're stopping at <b>${$scope.stops[0].name}</b> and <b>${$scope.stops[1].name}</b> on your way into the office`;
 
                     } else {
                         window.alert(`Can't get directions for ${$scope.travel.toLowerCase()} from where you are`);
@@ -150,7 +172,7 @@
                         console.log(response)
                         directionsDisplay.setDirections(response);
                         writeDirections(response.routes[0]);
-                        document.getElementById("stops").innerHTML = `Try and stop at <b>${$scope.stops[0].name}</b> and <b>${$scope.stops[1].name}</b> on your way into the ClickTime office`;
+                        document.getElementById("stops").innerHTML = `Try and stop at <b>${$scope.stops[0].name}</b> and <b>${$scope.stops[1].name}</b> on your way into the office`;
 
                     } else {
                         window.alert(`Can't get directions for ${$scope.travel.toLowerCase()} from where you are`);
